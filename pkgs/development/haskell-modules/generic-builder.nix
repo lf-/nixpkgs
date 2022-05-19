@@ -235,7 +235,7 @@ let
     "--ghc-options=-haddock"
   ] ++ optionals (doIdeInfo && doHaddock) [
     "--ghc-options=-fwrite-ide-info"
-    "--ghc-options=-hiedir=$doc/hie"
+    "--ghc-options=-hiedir=${docdir "$doc"}/hie"
   ];
 
   setupCompileFlags = [
