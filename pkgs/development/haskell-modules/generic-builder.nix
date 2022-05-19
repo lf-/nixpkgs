@@ -538,7 +538,8 @@ stdenv.mkDerivation ({
       remove-references-to -t $out $x
     done
     mkdir -p $doc
-    ''}${optionalString doIdeInfo ''find ${docdir "$doc"}/hie -name '*.hie' -exec remove-references-to -t $out '{}' ';' ''}
+    ''}${optionalString doIdeInfo && doHaddock ''
+      find ${docdir "$doc"}/hie -name '*.hie' -exec remove-references-to -t $out '{}' ';' ''}
     ${optionalString enableSeparateDataOutput "mkdir -p $data"}
 
     runHook postInstall
