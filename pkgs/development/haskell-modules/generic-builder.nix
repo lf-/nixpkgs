@@ -57,6 +57,7 @@ in
 , doCoverage ? false
 , doHaddock ? !(ghc.isHaLVM or false) && (ghc.hasHaddock or true)
 , doHaddockInterfaces ? doHaddock && lib.versionAtLeast ghc.version "9.0.1"
+, doIdeInfo ? false
 , passthru ? {}
 , pkg-configDepends ? [], libraryPkgconfigDepends ? [], executablePkgconfigDepends ? [], testPkgconfigDepends ? [], benchmarkPkgconfigDepends ? []
 , testDepends ? [], testHaskellDepends ? [], testSystemDepends ? [], testFrameworkDepends ? []
@@ -232,6 +233,9 @@ let
     "--bindir=${binDir}"
   ] ++ optionals (doHaddockInterfaces && isLibrary) [
     "--ghc-options=-haddock"
+  ] ++ optionals (doIdeInfo && doHaddock) [
+    "--ghc-options=-fwrite-ide-info"
+    "--ghc-options=-hiedir=$doc/hie"
   ];
 
   setupCompileFlags = [
