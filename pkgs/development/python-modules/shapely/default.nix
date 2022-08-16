@@ -1,7 +1,7 @@
 { lib
 , stdenv
 , buildPythonPackage
-, fetchPypi
+, fetchFromGitHub
 , fetchpatch
 , substituteAll
 , pythonOlder
@@ -16,9 +16,11 @@ buildPythonPackage rec {
   version = "1.8.2";
   disabled = pythonOlder "3.6";
 
-  src = fetchPypi {
-    inherit pname version;
-    sha256 = "sha256-Vyr51QBv1eMhPjfuVIkSsDQfsmck1tyKTjlQwQGX67Y=";
+  src = fetchFromGitHub {
+    owner = "shapely";
+    repo = "shapely";
+    rev = "73e8fa75e0724aced7a33c0bbcac068ec7c5b232";
+    sha256 = "sha256-TMOi65eG21Wgq/Yem07Yl6NklL2nh1yAuSu+jHbfr7Q=";
   };
 
   nativeBuildInputs = [
@@ -43,12 +45,6 @@ buildPythonPackage rec {
       src = ./library-paths.patch;
       libgeos_c = GEOS_LIBRARY_PATH;
       libc = lib.optionalString (!stdenv.isDarwin) "${stdenv.cc.libc}/lib/libc${stdenv.hostPlatform.extensions.sharedLibrary}.6";
-    })
-    (fetchpatch {
-      name = "fix-tests-geos-3.11.patch";
-      url = "https://github.com/shapely/shapely/commit/21c8e8a7909e7fb3cce6daa5c5b8284ac927fcb0.patch";
-      includes = [ "tests/test_parallel_offset.py" ];
-      sha256 = "sha256-85c8NlmAzzfCgepe/411ug5Sq+665dFMb3ySaUt9Kew=";
     })
  ];
 
