@@ -1,7 +1,41 @@
-{ lib, stdenv, python3Packages, fetchFromGitHub, fetchurl, sd, curl, pkg-config, openssl, rustPlatform, fetchYarnDeps, yarn, nodejs, fixup_yarn_lock, glibcLocales }:
+{ lib
+, stdenv
+, python3Packages
+, fetchFromGitHub
+, fetchurl
+, sd
+, curl
+, pkg-config
+, openssl
+, rustPlatform
+, fetchYarnDeps
+, yarn
+, nodejs
+, fixup_yarn_lock
+, glibcLocales
+, libiconv
+, CoreFoundation
+, CoreServices
+, Security
+}:
 
 let
   inherit (lib.importJSON ./deps.json) links version versionHash;
+  # Sapling sets a Cargo config containing lines like so:
+  # [target.aarch64-apple-darwin]
+  # rustflags = ["-C", "link-args=-Wl,-undefined,dynamic_lookup"]
+  #
+  # The default cargo config that's set by the build hook will set
+  # unstable.host-config and unstable.target-applies-to-host which seems to
+  # result in the link arguments above being ignored and thus link failures.
+  # All it is there to do anyway is just to do stuff with musl and cross
+  # compilation, which doesn't work on macOS anyway so we can just stub it
+  # on macOS.
+  #
+  # See https://github.com/NixOS/nixpkgs/pull/198311#issuecomment-1326894295
+  myCargoSetupHook = rustPlatform.cargoSetupHook.overrideAttrs (old: {
+    cargoConfig = if stdenv.isDarwin then "" else old.cargoConfig;
+  });
 
   src = fetchFromGitHub {
     owner = "facebook";
@@ -85,7 +119,7 @@ let
       sed -i "s|https://files.pythonhosted.org/packages/[[:alnum:]]*/[[:alnum:]]*/[[:alnum:]]*/|file://$NIX_BUILD_TOP/$sourceRoot/hack_pydeps/|g" $sourceRoot/setup.py
     '';
 
-    postFixup = ''
+    postFixup = lib.optionalString stdenv.isLinux ''
       wrapProgram $out/bin/sl \
         --set LOCALE_ARCHIVE "${glibcLocales}/lib/locale/locale-archive"
     '';
@@ -94,13 +128,19 @@ let
       curl
       pkg-config
     ] ++ (with rustPlatform; [
-      cargoSetupHook
+      myCargoSetupHook
       rust.cargo
       rust.rustc
     ]);
 
     buildInputs = [
+      curl
       openssl
+      libiconv
+    ] ++ lib.optionals stdenv.isDarwin [
+      CoreFoundation
+      CoreServices
+      Security
     ];
 
     doCheck = false;
@@ -145,7 +185,7 @@ stdenv.mkDerivation {
     homepage = "https://sapling-scm.com";
     license = licenses.gpl2Only;
     maintainers = with maintainers; [ pbar thoughtpolice ];
-    platforms = platforms.linux;
+    platforms = platforms.unix;
     mainProgram = "sl";
   };
 }
