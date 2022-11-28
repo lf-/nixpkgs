@@ -1,6 +1,6 @@
 { lib
 , stdenv
-, python3Packages
+, python38Packages
 , fetchFromGitHub
 , fetchurl
 , sd
@@ -88,7 +88,7 @@ let
   };
 
   # Builds the main `sl` binary and its Python extensions
-  sapling = python3Packages.buildPythonPackage {
+  sapling = python38Packages.buildPythonPackage {
     pname = "sapling-main";
     inherit src version;
 
@@ -164,7 +164,7 @@ stdenv.mkDerivation {
 
     cp -r ${sapling}/* $out
 
-    sitepackages=$out/lib/${python3Packages.python.libPrefix}/site-packages
+    sitepackages=$out/lib/${python38Packages.python.libPrefix}/site-packages
     chmod +w $sitepackages
     cp -r ${isl} $sitepackages/edenscm-isl
 
