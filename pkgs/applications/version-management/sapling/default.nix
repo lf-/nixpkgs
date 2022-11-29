@@ -41,7 +41,7 @@ let
     owner = "facebook";
     repo = "sapling";
     rev = version;
-    hash = "sha256-IzbUaFrsSMojhsbpnRj1XLkhO9V2zYdmmZls4mtZquw=";
+    hash = "sha256-HSBHvDcK807AyIa2U51NDTQ8ZNwI9X9hdq1QsCaiGxA=";
   };
 
   addonsSrc = "${src}/addons";
@@ -98,12 +98,16 @@ let
     cargoDeps = rustPlatform.importCargoLock {
       lockFile = ./Cargo.lock;
       outputHashes = {
-        "cloned-0.1.0" = "sha256-c3CPWVjOk+VKBLD6WuaYZvBoKi5PwgXmiwxKoCk0bsI=";
+        "cloned-0.1.0" = "sha256-2/C1/q8nxh4mUOdlejREv+Flgb+SyVKlYIMn9q37MRE=";
         "deltae-0.3.0" = "sha256-a9Skaqs+tVTw8x83jga+INBr+TdaMmo35Bf2wbfR6zs=";
-        "fb303_core-0.0.0" = "sha256-yoKKSBwqufFayLef2rRpX5oV1j8fL/kRkXBXIC++d7Q=";
-        "fbthrift-0.0.1+unstable" = "sha256-jtsDE5U/OavDUXRAE1N8/nujSPrWltImsFLzHaxfeM0=";
+        "fb303_core-0.0.0" = "sha256-Xgg/xMXSQkhT9yRuES2V7H+nrsvJBH3TrwQ5raARBvE=";
+        "fbthrift-0.0.1+unstable" = "sha256-GFIPkJvQLDxt/GS5LWDrKGFfdtOrmBTB0ndmJQk2wGA=";
         "reqwest-0.11.11" = "sha256-uhc8XhkGW22XDNo0qreWdXeFF2cslOOZHfTRQ30IBcE=";
-        "serde_bser-0.3.1" = "sha256-KCAC+rbczroZn/oKYTVpAPJl40yMrszt/PGol+JStDU=";
+        "serde_bser-0.3.1" = "sha256-3zwnaUr3pNrTLJmlZ/A5FJpSKdnLpmCuWvjyBceLTUM=";
+        "watchman_client-0.8.0" = "sha256-3zwnaUr3pNrTLJmlZ/A5FJpSKdnLpmCuWvjyBceLTUM=";
+        "tokio-uds-compat-0.1.0" = lib.fakeHash;
+        "thrift_compiler-0.1.0" = lib.fakeHash;
+        "sorted_vector_map-0.1.0" = lib.fakeHash;
       };
     };
     postPatch = ''
@@ -179,6 +183,8 @@ stdenv.mkDerivation {
     ${sapling}/bin/sl version | grep -qw "${version}"
     echo "OK!"
   '';
+
+  passthru.sapling = sapling;
 
   meta = with lib; {
     description = "A Scalable, User-Friendly Source Control System";

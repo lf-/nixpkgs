@@ -9,10 +9,7 @@ from subprocess import run
 from requests import get
 
 # Fetch the latest stable release metadata from GitHub
-latestTag = get("https://api.github.com/repos/facebook/sapling/releases/latest").json()[
-    "tag_name"
-]
-
+latestTag = 'd81eb55f69b428d7300c43aaa3dfc17393f79238'
 
 def nixPrefetchUrl(url):
     return run(
