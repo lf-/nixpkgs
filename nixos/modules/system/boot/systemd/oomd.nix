@@ -12,6 +12,14 @@ in {
     enableSystemSlice = lib.mkEnableOption (lib.mdDoc "oomd on the system slice (`system.slice`)");
     enableUserServices = lib.mkEnableOption (lib.mdDoc "oomd on all user services (`user@.service`)");
 
+    dryRun = lib.mkEnableOption (lib.mdDoc "dry run of oomd where it will only print what it would have killed.");
+
+    logLevel = lib.mkOption {
+      type = lib.types.enum ["debug" "notice" "info" "warning" "err" "crit" "alert" "emerg"];
+      default = "info";
+      description = "Log level for systemd-oomd";
+    };
+
     extraConfig = lib.mkOption {
       type = with lib.types; attrsOf (oneOf [ str int bool ]);
       default = {};
@@ -24,11 +32,28 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = cfg.dryRun -> cfg.logLevel == "debug";
+        message = ''
+          Due to a bug in systemd: https://github.com/systemd/systemd/pull/25670
+          systemd.oomd.dryRun requires that systemd.oomd.logLevel be
+          "debug".
+        '';
+      }
+    ];
     systemd.additionalUpstreamSystemUnits = [
       "systemd-oomd.service"
       "systemd-oomd.socket"
     ];
-    systemd.services.systemd-oomd.wantedBy = [ "multi-user.target" ];
+
+    systemd.services.systemd-oomd = {
+      # TODO: how do you override ExecStart for an upstream unit?
+      wantedBy = [ "multi-user.target" ];
+      environment = {
+        SYSTEMD_LOG_LEVEL = cfg.logLevel;
+      };
+    };
 
     environment.etc."systemd/oomd.conf".text = lib.generators.toINI {} {
       OOM = cfg.extraConfig;
