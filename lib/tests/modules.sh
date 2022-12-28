@@ -323,6 +323,7 @@ checkConfigError 'The option .* is used but not defined' config.foo ./freeform-l
 checkConfigOutput '^"24"$' config.foo ./freeform-lazyAttrsOf.nix ./freeform-unstr-dep-str.nix ./define-value-string.nix
 # submodules in freeformTypes should have their locations annotated
 checkConfigOutput '/freeform-submodules.nix"$' config.fooDeclarations.0 ./freeform-submodules.nix
+checkConfigOutput '/freeform-submodules.nix"$' config.fooDeclarationsLoc.0.file ./freeform-submodules.nix
 # freeformTypes can get merged using `types.type`, including submodules
 checkConfigOutput '^10$' config.free.xxx.foo ./freeform-submodules.nix
 checkConfigOutput '^10$' config.free.yyy.bar ./freeform-submodules.nix

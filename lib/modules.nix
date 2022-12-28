@@ -459,7 +459,7 @@ let
         else config;
     in
     if m ? config || m ? options then
-      let badAttrs = removeAttrs m ["_class" "_file" "key" "disabledModules" "imports" "options" "config" "meta" "freeformType"]; in
+      let badAttrs = removeAttrs m ["_class" "_file" "_loc" "key" "disabledModules" "imports" "options" "config" "meta" "freeformType"]; in
       if badAttrs != {} then
         throw "Module `${key}' has an unsupported attribute `${head (attrNames badAttrs)}'. This is caused by introducing a top-level `config' or `options' attribute. Add configuration attributes immediately on the top level instead, or move all of them (namely: ${toString (attrNames badAttrs)}) into the explicit `config' attribute."
       else
@@ -480,7 +480,7 @@ let
         disabledModules = m.disabledModules or [];
         imports = m.require or [] ++ m.imports or [];
         options = {};
-        config = addFreeformType (removeAttrs m ["_class" "_file" "key" "disabledModules" "require" "imports" "freeformType"]);
+        config = addFreeformType (removeAttrs m ["_class" "_file" "_loc" "key" "disabledModules" "require" "imports" "freeformType"]);
       };
 
   applyModuleArgsIfFunction = key: f: args@{ config, options, lib, ... }:
@@ -537,7 +537,7 @@ let
     mergeModules' prefix modules
       (concatMap (m: map (config: { file = m._file; inherit config; }) (pushDownProperties m.config)) modules);
 
-  mergeModules' = prefix: options: configs:
+  mergeModules' = prefix: modules: configs:
     let
       # an attrset 'name' => list of submodules that declare ‘name’.
       declsByName =
@@ -554,11 +554,11 @@ let
               else
                 mapAttrs
                   (n: option:
-                    [{ inherit (module) _file; options = option; }]
+                    [{ inherit (module) _file; _loc = builtins.unsafeGetAttrPos n subtree; options = option; }]
                   )
                   subtree
               )
-            options);
+            modules);
 
       # The root of any module definition must be an attrset.
       checkedConfigs =
@@ -730,9 +730,10 @@ let
             else res.options;
         in opt.options // res //
           { declarations = res.declarations ++ [opt._file];
+            declarationsWithLocations = res.declarationsWithLocations ++ optional (opt._loc != null) opt._loc;
             options = submodules;
           } // typeSet
-    ) { inherit loc; declarations = []; options = []; } opts;
+    ) { inherit loc; declarations = []; declarationsWithLocations = []; options = []; } opts;
 
   /* Merge all the definitions of an option to produce the final
      config value. */

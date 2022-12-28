@@ -3,6 +3,9 @@
   options.fooDeclarations = lib.mkOption {
     default = (options.free.type.getSubOptions [])._freeformOptions.foo.declarations;
   };
+  options.fooDeclarationsLoc = lib.mkOption {
+    default = (options.free.type.getSubOptions [])._freeformOptions.foo.declarationsWithLocations;
+  };
 
   options.free = lib.mkOption {
     type = submodule {
