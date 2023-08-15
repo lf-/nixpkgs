@@ -28,12 +28,13 @@ let
   # you'd need to include `extraSources = [ pkgs.customModules ]`
   prefixesToStrip = map (p: "${toString p}/") ([ prefix ] ++ extraSources);
   stripAnyPrefixes = lib.flip (lib.foldr lib.removePrefix) prefixesToStrip;
+  stripDeclLocPrefix = l: l // { file = stripAnyPrefixes l.file; };
 
   optionsDoc = buildPackages.nixosOptionsDoc {
     inherit options revision baseOptionsJSON warningsAreErrors;
     transformOptions = opt: opt // {
       # Clean up declaration sites to not refer to the NixOS source tree.
-      declarations = map stripAnyPrefixes opt.declarations;
+      declarations = map stripDeclLocPrefix opt.declarations;
     };
   };
 
@@ -53,11 +54,11 @@ let
         declarations =
           map
             (decl:
-              if hasPrefix (toString ../../..) (toString decl)
+              if hasPrefix (toString ../../..) (toString decl.file)
               then
-                let subpath = removePrefix "/" (removePrefix (toString ../../..) (toString decl));
-                in { url = "https://github.com/NixOS/nixpkgs/blob/master/${subpath}"; name = subpath; }
-              else decl)
+                let subpath = removePrefix "/" (removePrefix (toString ../../..) (toString decl.file));
+                in { url = "https://github.com/NixOS/nixpkgs/blob/master/${subpath}#L${toString decl.line}"; name = subpath; }
+              else decl.file)
             opt.declarations;
       };
       documentType = "none";

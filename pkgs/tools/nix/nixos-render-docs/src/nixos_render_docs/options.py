@@ -49,9 +49,17 @@ class BaseConverter(Converter[md.TR], Generic[md.TR]):
         return [ (k, self._options[k]) for k in keys ]
 
     def _format_decl_def_loc(self, loc: OptionLoc) -> tuple[Optional[str], str]:
-        # locations can be either plain strings (specific to nixpkgs), or attrsets
+        # locations can be either plain strings (specific to
+        # nixpkgs), decl-location attrsets {file, line, column}, or
+        # custom-rendered attrsets
         # { name = "foo/bar.nix"; url = "https://github.com/....."; }
-        if isinstance(loc, str):
+        if isinstance(loc, dict) and loc.get('name'):
+            return (loc['url'] if 'url' in loc else None, loc['name'])
+        else:
+            line = None
+            if isinstance(loc, dict):
+                line = loc['line']
+                loc = loc['file']
             # Hyperlink the filename either to the NixOS github
             # repository (if it’s a module and we have a revision number),
             # or to the local filesystem.
@@ -60,6 +68,8 @@ class BaseConverter(Converter[md.TR], Generic[md.TR]):
                     href = f"https://github.com/NixOS/nixpkgs/blob/master/{loc}"
                 else:
                     href = f"https://github.com/NixOS/nixpkgs/blob/{self._revision}/{loc}"
+                if line:
+                    href += f"#L{line}"
             else:
                 href = f"file://{loc}"
             # Print the filename and make it user-friendly by replacing the
@@ -72,8 +82,6 @@ class BaseConverter(Converter[md.TR], Generic[md.TR]):
             else:
                 name = loc
             return (href, name)
-        else:
-            return (loc['url'] if 'url' in loc else None, loc['name'])
 
     @abstractmethod
     def _decl_def_header(self, header: str) -> list[str]: raise NotImplementedError()

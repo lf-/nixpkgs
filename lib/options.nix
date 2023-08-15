@@ -269,7 +269,7 @@ rec {
           loc = opt.loc;
           inherit name;
           description = opt.description or null;
-          declarations = filter (x: x != unknownModule) opt.declarations;
+          declarations = opt.declarationsWithLocations;
           internal = opt.internal or false;
           visible =
             if (opt?visible && opt.visible == "shallow")
@@ -409,7 +409,5 @@ rec {
       ${showOption opt.loc}, with values defined in:
       ${concatMapStringsSep "\n" (defFile: "  - ${defFile}") opt.files}
     '';
-
-  unknownModule = "<unknown-file>";
 
 }
