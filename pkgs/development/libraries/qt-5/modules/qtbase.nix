@@ -389,6 +389,7 @@ stdenv.mkDerivation (finalAttrs: ({
   '';
 
   dontStrip = debugSymbols;
+  separateDebugInfo = true;
 
   setupHook = ../hooks/qtbase-setup-hook.sh;
 
