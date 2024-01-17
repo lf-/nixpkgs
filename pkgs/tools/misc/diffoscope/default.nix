@@ -74,6 +74,7 @@
 , zstd
   # updater only
 , writeScript
+, fetchFromGitLab
 }:
 
 # Note: when upgrading this package, please run the list-missing-tools.sh script as described below!
@@ -81,9 +82,12 @@ python3.pkgs.buildPythonApplication rec {
   pname = "diffoscope";
   version = "253";
 
-  src = fetchurl {
-    url = "https://diffoscope.org/archive/diffoscope-${version}.tar.bz2";
-    hash = "sha256-xI+SIEUPKFxz7sk9qqE1ibSJX0WRPnJEpco0Mqv7Wp8=";
+  src = fetchFromGitLab {
+    owner = "reproducible-builds";
+    repo = "diffoscope";
+    domain = "salsa.debian.org";
+    rev = "f1822463eb39ba673b1037e105a5af59fd04262b";
+    sha256 = "sha256-DDAHCMnT64oEy3t3JSW3YqT4NiM75aiPNz0bbnfZsD8=";
   };
 
   outputs = [
