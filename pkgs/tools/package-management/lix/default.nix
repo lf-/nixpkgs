@@ -33,6 +33,9 @@ let
         requiredSystemFeatures = [ ];
       };
 
+  # Since Lix 2.91 does not use boost coroutines, it does not need boehmgc patches either.
+  needsBoehmgcPatches = version: builtins.compareVersions version "2.91" < 0;
+
   common =
     args:
     callPackage (import ./common.nix ({ inherit lib fetchFromGitHub; } // args)) {
@@ -42,7 +45,7 @@ let
         stateDir
         confDir
         ;
-      boehmgc = boehmgc-nix;
+      boehmgc = if needsBoehmgcPatches args.version then boehmgc-nix else boehmgc-nix_2_3;
       aws-sdk-cpp = aws-sdk-cpp-nix;
     };
 in
@@ -57,6 +60,14 @@ lib.makeExtensible (self: ({
     }
   );
 
-  latest = self.lix_2_90;
-  stable = self.lix_2_90;
+  lix_2_91 = (
+    common {
+      version = "2.91.0";
+      hash = "sha256-Rosl9iA9MybF5Bud4BTAQ9adbY81aGmPfV8dDBGl34s=";
+      docCargoHash = "sha256-KOn1fXF7k7c/0e5ZCNZwt3YZmjL1oi5A2mhwxQWKaUo=";
+    }
+  );
+
+  latest = self.lix_2_91;
+  stable = self.lix_2_91;
 }))

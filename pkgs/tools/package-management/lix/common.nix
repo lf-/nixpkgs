@@ -57,8 +57,9 @@ assert (hash == null) -> (src != null);
   ninja,
   openssl,
   toml11,
-  python3,
+  pegtl,
   perl,
+  python3,
   pkg-config,
   rapidcheck,
   Security,
@@ -85,7 +86,11 @@ assert (hash == null) -> (src != null);
   stateDir,
   storeDir,
 }:
-assert lib.assertMsg (docCargoHash != null || docCargoLock != null) "Either `lix-doc`'s cargoHash using `docCargoHash` or `lix-doc`'s `cargoLock.lockFile` using `docCargoLock` must be set!";
+assert lib.assertMsg (docCargoHash != null || docCargoLock != null)
+  "Either `lix-doc`'s cargoHash using `docCargoHash` or `lix-doc`'s `cargoLock.lockFile` using `docCargoLock` must be set!";
+let
+  isLegacyParser = builtins.compareVersions version "2.91" < 0;
+in
 stdenv.mkDerivation {
   pname = "lix";
 
@@ -102,6 +107,7 @@ stdenv.mkDerivation {
     ++ lib.optionals enableDocumentation [
       "man"
       "doc"
+      "devdoc"
     ];
 
   strictDeps = true;
@@ -109,14 +115,12 @@ stdenv.mkDerivation {
   nativeBuildInputs =
     [
       pkg-config
-      bison
       flex
       jq
       meson
       ninja
       cmake
       python3
-      doxygen
 
       # Tests
       git
@@ -124,10 +128,12 @@ stdenv.mkDerivation {
       jq
       lsof
     ]
+    ++ lib.optionals isLegacyParser [ bison ]
     ++ lib.optionals (enableDocumentation) [
       (lib.getBin lowdown)
       mdbook
       mdbook-linkcheck
+      doxygen
     ]
     ++ lib.optionals stdenv.isLinux [ util-linuxMinimal ];
 
@@ -149,6 +155,7 @@ stdenv.mkDerivation {
       toml11
       lix-doc
     ]
+    ++ lib.optionals (!isLegacyParser) [ pegtl ]
     ++ lib.optionals stdenv.isDarwin [ Security ]
     ++ lib.optionals (stdenv.isx86_64) [ libcpuid ]
     ++ lib.optionals withLibseccomp [ libseccomp ]
@@ -160,7 +167,7 @@ stdenv.mkDerivation {
   ];
 
   postPatch = ''
-    patchShebangs --build tests
+    patchShebangs --build tests doc/manual
   '';
 
   preConfigure =
@@ -184,10 +191,15 @@ stdenv.mkDerivation {
       ''}
     '';
 
-  mesonBuildType = "release";
+  # -O3 seems to anger a gcc bug and provide no performance benefit.
+  # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114360
+  # We use -O2 upstream https://gerrit.lix.systems/c/lix/+/554
+  mesonBuildType = "debugoptimized";
+
   mesonFlags =
     [
-      # LTO optimization
+      # Enable LTO, since it improves eval performance a fair amount
+      (lib.mesonBool "b_lto" true)
       (lib.mesonEnable "gc" true)
       (lib.mesonBool "enable-tests" true)
       (lib.mesonBool "enable-docs" enableDocumentation)
@@ -202,10 +214,15 @@ stdenv.mkDerivation {
       (lib.mesonOption "sandbox-shell" "${busybox-sandbox-shell}/bin/busybox")
     ];
 
+  ninjaFlags = [ "-v" ];
+
   postInstall =
-    ''
+    lib.optionalString enableDocumentation ''
       mkdir -p $doc/nix-support
       echo "doc manual $doc/share/doc/nix/manual" >> $doc/nix-support/hydra-build-products
+
+      mkdir -p $devdoc/nix-support
+      echo "devdoc internal-api $devdoc/share/doc/nix/internal-api" >> $devdoc/nix-support/hydra-build-products
     ''
     + lib.optionalString stdenv.hostPlatform.isStatic ''
       mkdir -p $out/nix-support
@@ -220,15 +237,21 @@ stdenv.mkDerivation {
       done
     '';
 
+  # This needs to run after _multioutDocs moves the docs to $doc
+  postFixup = ''
+    mkdir -p $devdoc/share/doc/nix
+    mv $doc/share/doc/nix/internal-api $devdoc/share/doc/nix
+  '';
+
   doCheck = true;
-  mesonCheckFlags = [ "--suite=check" ];
+  mesonCheckFlags = [ "--suite=check" "--print-errorlogs" ];
   checkInputs = [
     gtest
     rapidcheck
   ];
 
   doInstallCheck = true;
-  mesonInstallCheckFlags = [ "--suite=installcheck" ];
+  mesonInstallCheckFlags = [ "--suite=installcheck" "--print-errorlogs" ];
 
   preInstallCheck = lib.optionalString stdenv.hostPlatform.isDarwin ''
     # socket path becomes too long otherwise
