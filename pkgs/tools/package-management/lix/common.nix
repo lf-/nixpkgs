@@ -19,7 +19,6 @@ assert (hash == null) -> (src != null);
 {
   stdenv,
   meson,
-  bash,
   bison,
   boehmgc,
   boost,
@@ -27,29 +26,20 @@ assert (hash == null) -> (src != null);
   busybox-sandbox-shell,
   bzip2,
   callPackage,
-  coreutils,
   curl,
   cmake,
-  docbook_xsl_ns,
-  docbook5,
   doxygen,
   editline,
   flex,
   git,
-  gnutar,
   gtest,
-  gzip,
   jq,
   lib,
   libarchive,
   libcpuid,
-  libgit2,
   libsodium,
-  libxml2,
-  libxslt,
   lowdown,
   lsof,
-  man,
   mercurial,
   mdbook,
   mdbook-linkcheck,
@@ -58,7 +48,6 @@ assert (hash == null) -> (src != null);
   openssl,
   toml11,
   pegtl,
-  perl,
   python3,
   pkg-config,
   rapidcheck,
@@ -129,7 +118,7 @@ stdenv.mkDerivation {
       lsof
     ]
     ++ lib.optionals isLegacyParser [ bison ]
-    ++ lib.optionals (enableDocumentation) [
+    ++ lib.optionals enableDocumentation [
       (lib.getBin lowdown)
       mdbook
       mdbook-linkcheck
@@ -284,7 +273,7 @@ stdenv.mkDerivation {
   # point 'nix edit' and ofborg at the file that defines the attribute,
   # not this common file.
   pos = builtins.unsafeGetAttrPos "version" args;
-  meta = with lib; {
+  meta = {
     description = "Powerful package manager that makes package management reliable and reproducible";
     longDescription = ''
       Lix (a fork of Nix) is a powerful package manager for Linux and other Unix systems that
@@ -294,10 +283,10 @@ stdenv.mkDerivation {
       environments.
     '';
     homepage = "https://lix.systems";
-    license = licenses.lgpl21Plus;
+    license = lib.licenses.lgpl21Plus;
     inherit maintainers;
-    platforms = platforms.unix;
-    outputsToInstall = [ "out" ] ++ optional enableDocumentation "man";
+    platforms = lib.platforms.unix;
+    outputsToInstall = [ "out" ] ++ lib.optional enableDocumentation "man";
     mainProgram = "nix";
     broken = enableStatic;
   };

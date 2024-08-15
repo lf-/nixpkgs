@@ -49,7 +49,7 @@ let
       aws-sdk-cpp = aws-sdk-cpp-nix;
     };
 in
-lib.makeExtensible (self: ({
+lib.makeExtensible (self: {
   buildLix = common;
 
   lix_2_90 = (
@@ -70,4 +70,4 @@ lib.makeExtensible (self: ({
 
   latest = self.lix_2_91;
   stable = self.lix_2_91;
-}))
+})
