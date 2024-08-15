@@ -78,7 +78,7 @@ assert (hash == null) -> (src != null);
 assert lib.assertMsg (docCargoHash != null || docCargoLock != null)
   "Either `lix-doc`'s cargoHash using `docCargoHash` or `lix-doc`'s `cargoLock.lockFile` using `docCargoLock` must be set!";
 let
-  isLegacyParser = builtins.compareVersions version "2.91" < 0;
+  isLegacyParser = lib.versionOlder version "2.91";
 in
 stdenv.mkDerivation {
   pname = "lix";

@@ -34,7 +34,7 @@ let
       };
 
   # Since Lix 2.91 does not use boost coroutines, it does not need boehmgc patches either.
-  needsBoehmgcPatches = version: builtins.compareVersions version "2.91" < 0;
+  needsBoehmgcPatches = version: lib.versionOlder version "2.91";
 
   common =
     args:
