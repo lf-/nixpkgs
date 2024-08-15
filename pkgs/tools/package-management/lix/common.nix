@@ -233,14 +233,20 @@ stdenv.mkDerivation {
   '';
 
   doCheck = true;
-  mesonCheckFlags = [ "--suite=check" "--print-errorlogs" ];
+  mesonCheckFlags = [
+    "--suite=check"
+    "--print-errorlogs"
+  ];
   checkInputs = [
     gtest
     rapidcheck
   ];
 
   doInstallCheck = true;
-  mesonInstallCheckFlags = [ "--suite=installcheck" "--print-errorlogs" ];
+  mesonInstallCheckFlags = [
+    "--suite=installcheck"
+    "--print-errorlogs"
+  ];
 
   preInstallCheck = lib.optionalString stdenv.hostPlatform.isDarwin ''
     # socket path becomes too long otherwise
