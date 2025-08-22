@@ -3626,10 +3626,6 @@ with pkgs;
 
   minijail-tools = python3.pkgs.callPackage ../tools/system/minijail/tools.nix { };
 
-  mir-qualia = callPackage ../tools/text/mir-qualia {
-    pythonPackages = python3Packages;
-  };
-
   mitmproxy = with python3Packages; toPythonApplication mitmproxy;
 
   mjpegtoolsFull = mjpegtools.override {
