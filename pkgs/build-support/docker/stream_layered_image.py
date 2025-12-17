@@ -343,7 +343,7 @@ Docker Image Specification v1.2 as reference [1].
     """,
     )
     arg_parser.add_argument(
-        "--repo_tag", "-t", type=str,
+        "--repo_tag", "-t", nargs="*", type=str,
         help="Override the RepoTags from the configuration"
     )
 
@@ -419,7 +419,7 @@ Docker Image Specification v1.2 as reference [1].
         manifest_json = [
             {
                 "Config": image_json_path,
-                "RepoTags": [args.repo_tag or conf["repo_tag"]],
+                "RepoTags": args.repo_tag or [conf["repo_tag"]],
                 "Layers": [layer.path for layer in layers],
             }
         ]
